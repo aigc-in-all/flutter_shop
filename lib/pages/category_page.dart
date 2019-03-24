@@ -3,6 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:convert';
 import '../service/service_method.dart';
 import '../model/category.dart';
+import '../provide/child_category.dart';
+import 'package:provide/provide.dart';
+import '../model/categoryGoodsList.dart';
+import '../provide/category_goods_list.dart';
 
 class CategoryPage extends StatefulWidget {
   @override
@@ -20,6 +24,12 @@ class _CategoryPageState extends State<CategoryPage> {
         child: Row(
           children: <Widget>[
             LeftCategoryNav(),
+            Column(
+              children: <Widget>[
+                _RightCategoryNav(),
+                _CategoryGoodsList(),
+              ],
+            )
           ],
         ),
       ),
@@ -35,6 +45,7 @@ class LeftCategoryNav extends StatefulWidget {
 
 class _LeftCategoryNavState extends State<LeftCategoryNav> {
   List list = [];
+  var listIndex = 0;
 
   @override
   void initState() {
@@ -57,13 +68,23 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
   }
 
   Widget _leftInkWell(int index) {
+    bool selected = (index == listIndex);
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        setState(() {
+          listIndex = index;
+        });
+        var childList = list[index].bxMallSubDto;
+        Provide.value<ChildCategory>(context).setChildCategory(childList);
+
+        var categoryId = list[index].mallCategoryId;
+        _getGoodsList(categoryId);
+      },
       child: Container(
         height: ScreenUtil().setHeight(100),
         padding: EdgeInsets.only(left: 10.0, top: 20.0),
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: selected ? Color.fromRGBO(236, 236, 236, 1.0) : Colors.white,
             border:
                 Border(bottom: BorderSide(width: 1, color: Colors.black12))),
         child: Text(
@@ -82,6 +103,164 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
       setState(() {
         list = category.data;
       });
+      Provide.value<ChildCategory>(context)
+          .setChildCategory(list[0].bxMallSubDto);
+
+      var categoryId = list[0].mallCategoryId;
+      _getGoodsList(categoryId);
     });
+  }
+
+  void _getGoodsList(String categoryId) async {
+    var data = {
+      'categoryId': categoryId,
+      'CategorySubId': '',
+      'page': 1
+    };
+    await request('getMallGoods', formData: data).then((val) {
+      var data = json.decode(val.toString());
+      CategoryGoodsListModel goodsList = CategoryGoodsListModel.fromJson(data);
+      Provide.value<CategoryGoodsListProvide>(context)
+          .setGoodsList(goodsList.data);
+    });
+  }
+}
+
+// 右侧顶部分类列表
+class _RightCategoryNav extends StatefulWidget {
+  @override
+  _RightCategoryNavState createState() => _RightCategoryNavState();
+}
+
+class _RightCategoryNavState extends State<_RightCategoryNav> {
+  @override
+  Widget build(BuildContext context) {
+    return Provide<ChildCategory>(
+      builder: (context, child, childCategory) {
+        return Container(
+          width: ScreenUtil().setWidth(570),
+          height: ScreenUtil().setHeight(80),
+          decoration: BoxDecoration(
+              color: Colors.white,
+              border:
+                  Border(bottom: BorderSide(width: 1, color: Colors.black12))),
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: childCategory.childCategoryList.length,
+            itemBuilder: (context, index) {
+              return _rightInkWell(childCategory.childCategoryList[index]);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _rightInkWell(BxMallSubDto item) {
+    return InkWell(
+        onTap: () {},
+        child: Container(
+          padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
+          child: Text(
+            item.mallSubName,
+            style: TextStyle(fontSize: ScreenUtil().setSp(28)),
+          ),
+        ));
+  }
+}
+
+// 右侧商品列表
+class _CategoryGoodsList extends StatefulWidget {
+  @override
+  _CategoryGoodsListState createState() => _CategoryGoodsListState();
+}
+
+class _CategoryGoodsListState extends State<_CategoryGoodsList> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Provide<CategoryGoodsListProvide>(
+      builder: (context, child, data) {
+        return Container(
+          width: ScreenUtil().setWidth(570),
+          height: ScreenUtil().setHeight(982),
+          child: ListView.builder(
+            itemCount: data.goodsList.length,
+            itemBuilder: (context, index) {
+              return _listItemWidget(data.goodsList[index]);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _goodsImage(CategoryListData data) {
+    return Container(
+      width: ScreenUtil().setWidth(200),
+      child: Image.network(data.image),
+    );
+  }
+
+  Widget _goodsName(CategoryListData data) {
+    return Container(
+      width: ScreenUtil().setWidth(370),
+      padding: EdgeInsets.all(5.0),
+      child: Text(
+        data.goodsName,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: ScreenUtil().setSp(28)),
+      ),
+    );
+  }
+
+  Widget _goodsPrice(CategoryListData data) {
+    return Container(
+      width: ScreenUtil().setWidth(370),
+      margin: EdgeInsets.only(top: 30.0),
+      child: Row(
+        children: <Widget>[
+          Text(
+            '${data.presentPrice}',
+            style:
+                TextStyle(color: Colors.pink, fontSize: ScreenUtil().setSp(30)),
+          ),
+          Text('${data.oriPrice}',
+              style: TextStyle(
+                color: Colors.black26,
+                decoration: TextDecoration.lineThrough,
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _listItemWidget(CategoryListData data) {
+    return InkWell(
+      onTap: () {},
+      child: Container(
+        padding: EdgeInsets.only(top: 5.0, bottom: 5.0),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            border:
+                Border(bottom: BorderSide(width: 1, color: Colors.black12))),
+        child: Row(
+          children: <Widget>[
+            _goodsImage(data),
+            Column(
+              children: <Widget>[
+                _goodsName(data),
+                _goodsPrice(data),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
   }
 }
