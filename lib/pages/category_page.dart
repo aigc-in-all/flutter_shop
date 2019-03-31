@@ -75,9 +75,10 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
           listIndex = index;
         });
         var childList = list[index].bxMallSubDto;
-        Provide.value<ChildCategory>(context).setChildCategory(childList);
-
         var categoryId = list[index].mallCategoryId;
+        Provide.value<ChildCategory>(context)
+            .setChildCategory(childList, categoryId);
+
         _getGoodsList(categoryId);
       },
       child: Container(
@@ -103,17 +104,17 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
       setState(() {
         list = category.data;
       });
-      Provide.value<ChildCategory>(context)
-          .setChildCategory(list[0].bxMallSubDto);
-
       var categoryId = list[0].mallCategoryId;
+      Provide.value<ChildCategory>(context)
+          .setChildCategory(list[0].bxMallSubDto, categoryId);
+
       _getGoodsList(categoryId);
     });
   }
 
-  void _getGoodsList(String categoryId) async {
-    var data = {'categoryId': categoryId, 'CategorySubId': '', 'page': 1};
-    await request('getMallGoods', formData: data).then((val) {
+  void _getGoodsList(String categoryId) {
+    var data = {'categoryId': categoryId, 'categorySubId': '', 'page': 1};
+    request('getMallGoods', formData: data).then((val) {
       var data = json.decode(val.toString());
       CategoryGoodsListModel goodsList = CategoryGoodsListModel.fromJson(data);
       Provide.value<CategoryGoodsListProvide>(context)
@@ -157,7 +158,9 @@ class _RightCategoryNavState extends State<_RightCategoryNav> {
     bool clicked = index == Provide.value<ChildCategory>(context).childIndex;
     return InkWell(
         onTap: () {
-          Provide.value<ChildCategory>(context).changeChildIndex(index);
+          Provide.value<ChildCategory>(context)
+              .changeChildIndex(index, item.mallSubId);
+          _getGoodsList(item.mallSubId);
         },
         child: Container(
           padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
@@ -168,6 +171,23 @@ class _RightCategoryNavState extends State<_RightCategoryNav> {
                 color: clicked ? Colors.pink : Colors.black),
           ),
         ));
+  }
+
+  void _getGoodsList(String categorySubId) {
+    var data = {
+      'categoryId': Provide.value<ChildCategory>(context).categoryId,
+      'categorySubId': categorySubId,
+      'page': 1
+    };
+    request('getMallGoods', formData: data).then((val) {
+      var data = json.decode(val.toString());
+      CategoryGoodsListModel goodsList = CategoryGoodsListModel.fromJson(data);
+      var list = goodsList.data;
+      if (list == null) {
+        list = [];
+      }
+      Provide.value<CategoryGoodsListProvide>(context).setGoodsList(list);
+    });
   }
 }
 
@@ -187,6 +207,9 @@ class _CategoryGoodsListState extends State<_CategoryGoodsList> {
   Widget build(BuildContext context) {
     return Provide<CategoryGoodsListProvide>(
       builder: (context, child, data) {
+        if (data.goodsList.isEmpty) {
+          return Text('没有数据');
+        }
         return Expanded(
           child: Container(
             width: ScreenUtil().setWidth(570),
