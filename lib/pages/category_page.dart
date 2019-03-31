@@ -144,7 +144,8 @@ class _RightCategoryNavState extends State<_RightCategoryNav> {
             scrollDirection: Axis.horizontal,
             itemCount: childCategory.childCategoryList.length,
             itemBuilder: (context, index) {
-              return _rightInkWell(childCategory.childCategoryList[index]);
+              return _rightInkWell(
+                  index, childCategory.childCategoryList[index]);
             },
           ),
         );
@@ -152,14 +153,19 @@ class _RightCategoryNavState extends State<_RightCategoryNav> {
     );
   }
 
-  Widget _rightInkWell(BxMallSubDto item) {
+  Widget _rightInkWell(int index, BxMallSubDto item) {
+    bool clicked = index == Provide.value<ChildCategory>(context).childIndex;
     return InkWell(
-        onTap: () {},
+        onTap: () {
+          Provide.value<ChildCategory>(context).changeChildIndex(index);
+        },
         child: Container(
           padding: EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 10.0),
           child: Text(
             item.mallSubName,
-            style: TextStyle(fontSize: ScreenUtil().setSp(28)),
+            style: TextStyle(
+                fontSize: ScreenUtil().setSp(28),
+                color: clicked ? Colors.pink : Colors.black),
           ),
         ));
   }
