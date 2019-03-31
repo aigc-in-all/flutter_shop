@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_easyrefresh/easy_refresh.dart';
+// import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:convert';
 import '../service/service_method.dart';
 import '../model/category.dart';
@@ -198,6 +200,11 @@ class _CategoryGoodsList extends StatefulWidget {
 }
 
 class _CategoryGoodsListState extends State<_CategoryGoodsList> {
+  GlobalKey<RefreshFooterState> _footerKey =
+      new GlobalKey<RefreshFooterState>();
+
+  var scrollController = new ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -207,22 +214,75 @@ class _CategoryGoodsListState extends State<_CategoryGoodsList> {
   Widget build(BuildContext context) {
     return Provide<CategoryGoodsListProvide>(
       builder: (context, child, data) {
+        try {
+          if (Provide.value<ChildCategory>(context).page == 1) {
+            // 滚动到顶部
+            scrollController.jumpTo(0.0);
+          }
+        } catch (e) {
+          print('进入页面第一次初始化：${e}');
+        }
+
         if (data.goodsList.isEmpty) {
           return Text('没有数据');
         }
         return Expanded(
           child: Container(
-            width: ScreenUtil().setWidth(570),
-            child: ListView.builder(
-              itemCount: data.goodsList.length,
-              itemBuilder: (context, index) {
-                return _listItemWidget(data.goodsList[index]);
-              },
-            ),
-          ),
+              width: ScreenUtil().setWidth(570),
+              child: EasyRefresh(
+                refreshFooter: ClassicsFooter(
+                  key: _footerKey,
+                  bgColor: Colors.white,
+                  textColor: Colors.pink,
+                  moreInfoColor: Colors.pink,
+                  showMore: true,
+                  noMoreText: Provide.value<ChildCategory>(context).noMoreText,
+                  moreInfo: '加载中',
+                  loadReadyText: '上拉加载',
+                ),
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: data.goodsList.length,
+                  itemBuilder: (context, index) {
+                    return _listItemWidget(data.goodsList[index]);
+                  },
+                ),
+                loadMore: () async {
+                  _getMoreGoodsList();
+                },
+              )),
         );
       },
     );
+  }
+
+  void _getMoreGoodsList() {
+    Provide.value<ChildCategory>(context).addPage();
+    var data = {
+      'categoryId': Provide.value<ChildCategory>(context).categoryId,
+      'categorySubId': Provide.value<ChildCategory>(context).subId,
+      'page': Provide.value<ChildCategory>(context).page
+    };
+    request('getMallGoods', formData: data).then((val) {
+      var data = json.decode(val.toString());
+      CategoryGoodsListModel goodsList = CategoryGoodsListModel.fromJson(data);
+      var list = goodsList.data;
+      if (list == null || list.isEmpty) {
+        // Show Toast
+        // Fluttertoast.showToast(
+        //   msg: '已经到底了',
+        //   toastLength: Toast.LENGTH_SHORT,
+        //   gravity: ToastGravity.CENTER,
+        //   timeInSecForIos: 1,
+        //   backgroundColor: Colors.red,
+        //   textColor: Colors.white,
+        //   fontSize: 16.0
+        // );
+        Provide.value<ChildCategory>(context).changeNoMoreText('没有更多了');
+      } else {
+        Provide.value<CategoryGoodsListProvide>(context).setMoreGoodsList(list);
+      }
+    });
   }
 
   Widget _goodsImage(CategoryListData data) {
