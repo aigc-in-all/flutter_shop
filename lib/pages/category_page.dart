@@ -112,11 +112,7 @@ class _LeftCategoryNavState extends State<LeftCategoryNav> {
   }
 
   void _getGoodsList(String categoryId) async {
-    var data = {
-      'categoryId': categoryId,
-      'CategorySubId': '',
-      'page': 1
-    };
+    var data = {'categoryId': categoryId, 'CategorySubId': '', 'page': 1};
     await request('getMallGoods', formData: data).then((val) {
       var data = json.decode(val.toString());
       CategoryGoodsListModel goodsList = CategoryGoodsListModel.fromJson(data);
@@ -185,14 +181,15 @@ class _CategoryGoodsListState extends State<_CategoryGoodsList> {
   Widget build(BuildContext context) {
     return Provide<CategoryGoodsListProvide>(
       builder: (context, child, data) {
-        return Container(
-          width: ScreenUtil().setWidth(570),
-          height: ScreenUtil().setHeight(982),
-          child: ListView.builder(
-            itemCount: data.goodsList.length,
-            itemBuilder: (context, index) {
-              return _listItemWidget(data.goodsList[index]);
-            },
+        return Expanded(
+          child: Container(
+            width: ScreenUtil().setWidth(570),
+            child: ListView.builder(
+              itemCount: data.goodsList.length,
+              itemBuilder: (context, index) {
+                return _listItemWidget(data.goodsList[index]);
+              },
+            ),
           ),
         );
       },
