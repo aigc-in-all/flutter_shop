@@ -4,7 +4,7 @@ import 'dart:io';
 import '../config/service_url.dart';
 
 Future request(url, {formData}) async {
-  print('开始获取数据: url=${url}, params=${formData}');
+  print('开始获取数据: url=$url, params=$formData');
   try {
     Response response;
     Dio dio = new Dio();
@@ -21,7 +21,7 @@ Future request(url, {formData}) async {
       throw Exception('后端接口出现异常');
     }
   } catch (e) {
-    return print('ERROR: ==============>${e}');
+    return print('ERROR: ==============>$e');
   }
 }
 
@@ -41,7 +41,7 @@ Future getHomePageContent() async {
       throw Exception('后端接口出现异常');
     }
   } catch (e) {
-    return print('ERROR: ==============>${e}');
+    return print('ERROR: ==============>$e');
   }
 }
 
@@ -61,6 +61,6 @@ Future getHomePageBelowContent() async {
       throw Exception('后端接口出现异常');
     }
   } catch (e) {
-    return print('ERROR: ==============>${e}');
+    return print('ERROR: ==============>$e');
   }
 }
