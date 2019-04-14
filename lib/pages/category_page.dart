@@ -220,7 +220,7 @@ class _CategoryGoodsListState extends State<_CategoryGoodsList> {
             scrollController.jumpTo(0.0);
           }
         } catch (e) {
-          print('进入页面第一次初始化：${e}');
+          print('进入页面第一次初始化：$e');
         }
 
         if (data.goodsList.isEmpty) {
