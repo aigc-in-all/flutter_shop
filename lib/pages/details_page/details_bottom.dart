@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_shop/provide/currentIndex.dart';
 import 'package:provide/provide.dart';
 
 import '../../provide/cart.dart';
@@ -24,8 +25,8 @@ class DetailsBottom extends StatelessWidget {
         children: <Widget>[
           InkWell(
             onTap: () async {
-              await Provide.value<CartProvide>(context)
-                  .save(goodsId, goodsName, count, price, images);
+              Provide.value<CurrentIndexProvide>(context).changeIndex(2);
+              Navigator.pop(context);
             },
             child: Container(
               width: ScreenUtil().setWidth(110),

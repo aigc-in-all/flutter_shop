@@ -1,14 +1,16 @@
-import 'package:flutter/material.dart';
-import './pages/index_page.dart';
-import 'package:provide/provide.dart';
-import 'provide/counter.dart';
-import './provide/child_category.dart';
-import './provide/category_goods_list.dart';
-import './provide/details_info.dart';
-import './provide/cart.dart';
 import 'package:fluro/fluro.dart';
-import './routers/routes.dart';
+import 'package:flutter/material.dart';
+import 'package:provide/provide.dart';
+
+import './pages/index_page.dart';
+import './provide/cart.dart';
+import './provide/category_goods_list.dart';
+import './provide/child_category.dart';
+import './provide/currentIndex.dart';
+import './provide/details_info.dart';
 import './routers/application.dart';
+import './routers/routes.dart';
+import 'provide/counter.dart';
 
 void main() {
   var counter = Counter();
@@ -16,6 +18,7 @@ void main() {
   var categoryGoodsList = CategoryGoodsListProvide();
   var detailsInfoProvide = DetailsInfoProvide();
   var cartProvide = CartProvide();
+  var currentIndexProvide = CurrentIndexProvide();
   var providers = Providers();
 
   providers
@@ -23,7 +26,8 @@ void main() {
     ..provide(Provider<ChildCategory>.value(childCategory))
     ..provide(Provider<CategoryGoodsListProvide>.value(categoryGoodsList))
     ..provide(Provider<DetailsInfoProvide>.value(detailsInfoProvide))
-    ..provide(Provider<CartProvide>.value(cartProvide));
+    ..provide(Provider<CartProvide>.value(cartProvide))
+    ..provide(Provider<CurrentIndexProvide>.value(currentIndexProvide));
 
   runApp(ProviderNode(child: MyApp(), providers: providers));
 }
